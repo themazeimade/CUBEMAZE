@@ -1,3 +1,4 @@
+#pragma once
 #include "vulkanApp.h"
 #include <glm/fwd.hpp>
 #include <memory>
@@ -10,6 +11,7 @@ struct objProperties {
   // physicsProperties();
   // ~physicsProperties();
   float fmass;
+  float fAngle;
   glm::vec3 vpos;
   glm::vec3 vvelocity;
   float fspeed;

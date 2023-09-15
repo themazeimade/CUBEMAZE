@@ -26,6 +26,9 @@ public:
   void createIndexBuffer(VkBuffer &ib, VkDeviceMemory &iBMemory,
                          const std::vector<uint16_t> indexes);
   VkDevice getDevice() { return device; }
+  GLFWwindow *getwindow() { return window; }
+  VkSampler getTextureSampler() { return textureSampler; }
+  VkImageView getTextureImageView() { return textureImageView; }
 
   void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
                     VkMemoryPropertyFlags properties, VkBuffer &buffer,
@@ -51,7 +54,7 @@ public:
   float clickLength;
   float clickRatio;
   bool drawCircle = false;
-  bool setVelocityCircle = false; 
+  bool setVelocityCircle = false;
   bool LeftClick = false;
 
 protected:
@@ -115,11 +118,17 @@ protected:
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkFence> inFlightFences;
   uint32_t currentFrame = 0;
-  
-  //depth buffer
+
+  // depth buffer
   VkImage depthImage;
   VkDeviceMemory depthImageMemory;
   VkImageView depthImageView;
+
+  // texture image
+  VkImage textureImage;
+  VkDeviceMemory textureImageMemory;
+  VkImageView textureImageView;
+  VkSampler textureSampler;
 
   // imgui draw data;
   ImDrawData *drawData;
@@ -134,15 +143,16 @@ protected:
 
   void initWindow();
 
-  void inputHandler();
+  // virtual void inputHandler();
   static void framebufferResizeCallback(GLFWwindow *window, int width,
                                         int height);
   // input handlig before imgui;
-  static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-  static void mouse_button_callback(GLFWwindow *window, int button, int action,
-                                    int mods);
-  static void key_callback(GLFWwindow *window, int key, int scancode,
-                           int action, int mods);
+  // static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+  // static void mouse_button_callback(GLFWwindow *window, int button, int
+  // action,
+  //                                   int mods);
+  // static void key_callback(GLFWwindow *window, int key, int scancode,
+  //                          int action, int mods);
 
   void initVulkan();
   // void mainLoop();
@@ -177,13 +187,13 @@ protected:
   void updateUniformBuffer(uint32_t currentImage);
 
   void createDepthResources();
-void createImage(uint32_t width, uint32_t height, VkFormat format,
-                 VkImageTiling tiling, VkImageUsageFlags usage,
-                 VkMemoryPropertyFlags properties, VkImage &image,
-                 VkDeviceMemory &imageMemory) ;
-  
-VkImageView createImageView(VkImage image, VkFormat format,
-                            VkImageAspectFlags aspectFlags) ;
+  void createImage(uint32_t width, uint32_t height, VkFormat format,
+                   VkImageTiling tiling, VkImageUsageFlags usage,
+                   VkMemoryPropertyFlags properties, VkImage &image,
+                   VkDeviceMemory &imageMemory);
+
+  VkImageView createImageView(VkImage image, VkFormat format,
+                              VkImageAspectFlags aspectFlags);
   // void drawFrame();
 
   VkShaderModule createShaderModule(const std::vector<char> &code);
@@ -218,14 +228,26 @@ VkImageView createImageView(VkImage image, VkFormat format,
   void init_imgui();
   uint32_t findMemoryType(uint32_t typeFilter,
                           VkMemoryPropertyFlags properties);
-  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+  VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates,
+                               VkImageTiling tiling,
+                               VkFormatFeatureFlags features);
 
-VkFormat findDepthFormat();
-bool hasStencilComponent(VkFormat format);
+  VkFormat findDepthFormat();
+  bool hasStencilComponent(VkFormat format);
 
   void createCommandBuffer();
   // void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
   // imageIndex,
   //                          ImDrawData *draw_data = nullptr);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+  void createTextureImage();
+  void createTextureImageView();
+
+  VkCommandBuffer beginSingleTimeCommands();
+  void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+  void transitionImageLayout(VkImage image, VkFormat format,
+                             VkImageLayout oldLayout, VkImageLayout newLayout);
+  void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width,
+                         uint32_t height);
+  void createTextureSampler();
 };

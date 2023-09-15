@@ -12,7 +12,7 @@ project(circlesim)
 
 set(IMGUI_DIR ./dependencies/dear-imgui/)
 # add_executable(circlesim main.cpp )
-add_executable(circlesim main.cpp vulkanApp.h utils.h vulkanApp.cpp utils.cpp shapes.h shapes.cpp geometry.h renderer.h renderer.cpp renderobjects.h renderobjects.cpp physics.h physics.cpp ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp )
+add_executable(circlesim main.cpp vulkanApp.h utils.h vulkanApp.cpp utils.cpp shapes.h shapes.cpp geometry.h renderer.h renderer.cpp renderobjects.h renderobjects.cpp physics.h physics.cpp camera.h camera.cpp mazeGen.h mazeGen.cpp ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp )
 # file(GLOB SOURCES vulkanApp.h utils.h guiManager.h vulkanApp.cpp utils.cpp guiManager.cpp  )
 # target_sources(circlesim PRIVATE ${SOURCES} )
 # add_executable(circlesim main.cpp ${IMGUI_DIR}/*.cpp ${IMGUI_DIR}/dependencies/*.cpp )
@@ -32,6 +32,8 @@ find_package(glm REQUIRED)
 target_link_libraries(circlesim PRIVATE glm::glm)
 # target_include_directories(${PROJECT_NAME} PRIVATE glm)
 # include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends)
+target_include_directories(circlesim PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/stb/)
+target_link_directories(circlesim PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/stb/)
 
 target_include_directories(circlesim PRIVATE ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 

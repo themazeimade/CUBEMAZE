@@ -12,6 +12,7 @@ objProperties::objProperties() {
 
   vpos = glm::vec3(0.0f, 0.0f, 0.0f);
   vprevPos = glm::vec3(0.0f, 0.0f, 0.0f);
+  fAngle = glm::radians(0.0f);
 
   vvelocity = glm::vec3(0.0f, 0.0f, 0.0f);
   fspeed = 0.0f;
@@ -40,11 +41,11 @@ void objProperties::CalcF() {
       HoV = 0;
     float dirFriction = glm::dot(
         vforcesImpostor, vTangent); // normal force on windd and gravity that
-    float dirVelocity = glm::dot(
-        vvelocity, vTangent); // normal force on windd and gravity that
+    float dirVelocity =
+        glm::dot(vvelocity, vTangent); // normal force on windd and gravity that
     if (bCollision == true) {
       // handle friction
-      if (vvelocity[HoV] <= 0.01f && vvelocity[HoV] >= -0.01f ) {
+      if (vvelocity[HoV] <= 0.01f && vvelocity[HoV] >= -0.01f) {
         // std::cout << "hi im inside before htis" << std::endl;
         if (glm::abs(dirFriction) <= glm::abs(fNormalForce) * _U_STATIC) {
           // std::cout << "hi im inside this shitt" << std::endl;
@@ -113,17 +114,18 @@ void objProperties::updateEuler(double dt) {
   // std::cout << "vforces x: " << vforces.x << "y: " << vforces.y << std::endl;
   dv = a * static_cast<float>(dt);
   vvelocity += dv;
-  // std::cout << "vvelocity x: " << vvelocity.x << "y: " << vvelocity.y << std::endl;
+  // std::cout << "vvelocity x: " << vvelocity.x << "y: " << vvelocity.y <<
+  // std::endl;
   fspeed = glm::length(vvelocity);
   // if (fspeed < 0.06f) vvelocity = {0.0f,0.0f,0.0f};
   ds = vvelocity * static_cast<float>(dt);
   // if (bCollision == false)
-    // vprevPos = vpos;
+  // vprevPos = vpos;
 
   // if (fspeed >= 0.1) {
   vpos += ds;
 
-  vImpactforces = {0.0f,0.0f,0.0f};
+  vImpactforces = {0.0f, 0.0f, 0.0f};
   // };
   // std::cout << "vprevPos = ("<< vprevPos.x << ";" << vprevPos.y << ")" <<
   // std::endl; std::cout << "vpos = ("<< vpos.x << ";" << vpos.y << ")" <<
@@ -193,39 +195,53 @@ void renderobject::buildDescriptorSets() {
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
 
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = descriptorSets[i];
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
+    VkDescriptorImageInfo imageInfo{};
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = context->getTextureImageView();
+    imageInfo.sampler = context->getTextureSampler();
 
-    vkUpdateDescriptorSets(context->getDevice(), 1, &descriptorWrite, 0,
-                           nullptr);
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+
+    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[0].dstSet = descriptorSets[i];
+    descriptorWrites[0].dstBinding = 0;
+    descriptorWrites[0].dstArrayElement = 0;
+    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = descriptorSets[i];
+    descriptorWrites[1].dstBinding = 1;
+    descriptorWrites[1].dstArrayElement = 0;
+    descriptorWrites[1].descriptorType =
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pImageInfo = &imageInfo;
+
+    vkUpdateDescriptorSets(context->getDevice(),
+                           static_cast<uint32_t>(descriptorWrites.size()),
+                           descriptorWrites.data(), 0, nullptr);
   }
 }
 
 void renderobject::createDescriptorPool() {
-  VkDescriptorPoolSize poolSize{};
-  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  std::array<VkDescriptorPoolSize, 2> poolSizes{};
+  poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
   VkDescriptorPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolInfo.poolSizeCount = 1;
-  poolInfo.pPoolSizes = &poolSize;
+  poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+  poolInfo.pPoolSizes = poolSizes.data();
   poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
   if (vkCreateDescriptorPool(context->getDevice(), &poolInfo, nullptr,
                              &descriptorPool) != VK_SUCCESS) {
     throw std::runtime_error("failed to create descriptor pool!");
   }
-
-  // context->mainDeletion.push_function([=]() {
-  //   vkDestroyDescriptorPool(context->getDevice(), descriptorPool, nullptr);
-  // });
 }
 
 void renderobject::prepareRenderProperties() {
@@ -235,8 +251,9 @@ void renderobject::prepareRenderProperties() {
   buildDescriptorSets();
   createMeshPipeline();
 }
-void renderobject::injectMethods2commandB(VkCommandBuffer commandbuffer_) {
-  updateUBO();
+void renderobject::injectMethods2commandB(VkCommandBuffer commandbuffer_,
+                                          camera *_sceneCamera) {
+  updateUBO(_sceneCamera);
   if (mesh->shaderPrimitive != true) {
     vkCmdBindPipeline(commandbuffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       pipeline);
@@ -254,19 +271,17 @@ void renderobject::injectMethods2commandB(VkCommandBuffer commandbuffer_) {
   vkCmdDrawIndexed(commandbuffer_, static_cast<uint32_t>(mesh->indices.size()),
                    1, 0, 0, 0);
 }
-void renderobject::updateUBO() {
+void renderobject::updateUBO(camera *_sceneCamera) {
   UniformBufferObject ubo_;
   // do stuff with that
   ubo_.model = glm::translate(ubo_.model, mesh->properties->vpos);
-  // ubo_.model = glm::translate(MVP.model,glm::vec3(3.f));
-  ubo_.view = glm::lookAt(
-      glm::vec3(context->lookat0, context->lookat1, context->lookat2),
-      glm::vec3(0.0f), glm::vec3(0, 1.0f, 0));
-  ubo_.proj = glm::perspective(glm::radians(90.0f),
-                               context->getswExtent().width /
-                                   (float)context->getswExtent().height,
-                               0.1f, 100.f);
-  ubo_.proj[1][1] *= -1;
+  ubo_.model = glm::rotate(ubo_.model,mesh->properties->fAngle, glm::vec3(1.0f,0.0f,0.0f));
+  ubo_.view =
+      glm::lookAt(*_sceneCamera->getPosition(),
+                  *_sceneCamera->getPosition() + _sceneCamera->frontCamera,
+                  _sceneCamera->upVector);
+  ubo_.proj = _sceneCamera->getCameraProjM();
+
   memcpy(uniformBuffersMapped[context->getCurrFrame()], &ubo_, sizeof(ubo_));
 }
 
@@ -290,13 +305,13 @@ void renderObjectQueue::push_renderobject(std::unique_ptr<renderobject> ro_) {
 
 void renderObjectQueue::flush(VkCommandBuffer commandBuffer_) {
   for (auto it = shapes.rbegin(); it != shapes.rend(); it++) {
-    (*it)->injectMethods2commandB(commandBuffer_);
+    (*it)->injectMethods2commandB(commandBuffer_, sceneCamera.get());
   }
 }
 
 void renderObjectQueue::flushGuiCalls() {
   int j = 0;
-  for (auto it = shapes.rbegin() + 1; it != shapes.rend(); it++) {
+  for (auto it = shapes.rbegin() /* + 1 */; it != shapes.rend(); it++) {
     ImGui::PushID(j);
     ImGui::Text("Object %i", j);
     ImGui::Text("Enter a value x:");

@@ -320,3 +320,23 @@ void physicsEngine::updatesimulation(renderObjectQueue *queue) {
   boundingBox = nullptr;
   queue = nullptr;
 }
+
+bool physicsEngine::collisionDetection(renderObjectQueue* queue) {
+  auto camera = queue->getSceneCamera();
+  auto& objectscene = queue->shapes;
+  for (auto it = objectscene.begin(); it<objectscene.end(); it++){
+    auto a = camera->minmax;
+    renderobject* box = (*it).get();  
+    auto b = box->minmax;
+      return (
+    a.first[0] <= b.second[0] &&
+    a.second[0] >= b.first[0] &&
+    a.first[1] <= b.second[1] &&
+    a.second[1] >= b.first[1] &&
+    a.first[2] <= b.second[2] &&
+    a.second[2] >= b.first[2]
+  );
+  };
+return true; 
+};
+

@@ -1,4 +1,6 @@
 #include "utils.h"
+// #define STB_IMAGE_IMPLEMENTATION
+// #include <stb_image.h>
 
 VkResult CreateDebugUtilsMessengerEXT(
     VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,

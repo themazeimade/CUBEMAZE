@@ -9,6 +9,7 @@ class physicsEngine {
 public :
   bool checkWallCollisions(renderobject* boundary, renderobject* simObject);
   void checkObjectsCollisions(renderObjectQueue* queue);
+  bool collisionDetection(renderObjectQueue* queue);
   void updatesimulation(renderObjectQueue* queue);
   uint32_t FrameCounter;
 };

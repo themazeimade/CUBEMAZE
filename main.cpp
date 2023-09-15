@@ -1,5 +1,6 @@
 #include "imgui.h"
 #include "renderer.h"
+#include "mazeGen.h"
 #include <iostream>
 #include <memory>
 // #include "physicsProperties.h"
@@ -10,25 +11,16 @@
 int main() {
   try {
     auto app = std::make_unique<renderer>();
-    // setup only mesh
-    std::unique_ptr<renderobject> b = std::make_unique<renderobject>(app.get());
-    b->mesh = std::make_unique<Square>(19.f);
-    b->prepareRenderProperties();
-    app->objectQueue->push_renderobject(std::move(b));
-    // b.reset();
     
-    // std::unique_ptr<renderobject> a = std::make_unique<renderobject>(app.get());
-    // a->mesh = std::make_unique<Scircle>(0.5f);
-    // a->prepareRenderProperties();
-    // app->objectQueue->push_renderobject(std::move(a));
-    // objQueue->push_renderobject(std::make_unique<renderobject>(app.get()));
-    // objQueue->shapes.back()->mesh = new circleFan(5.f, 32);
-    // objQueue->shapes.back()->prepareRenderProperties();
-    // std::unique_ptr<renderobject> a = std::make_unique<renderobject>(app.get());
-    // a->mesh = std::make_unique<Scircle>(3.f);
-    // a->prepareRenderProperties();
-    // objQueue->push_renderobject(a);
-    // a.reset();
+    mazeGen Maze;
+    Maze.createMaze2D();
+    Maze.Queue3Dscene(app.get());
+    // std::unique_ptr<renderobject> b = std::make_unique<renderobject>(app.get());
+    // b->mesh = std::make_unique<CubeFace>(2.f);
+    // b->prepareRenderProperties();
+    // app->objectQueue->push_renderobject(std::move(b));
+    
+    // setup only mesh
     app->renderLoop();
   } catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;

@@ -1,6 +1,7 @@
 // #include <glm/fwd.hpp>
 #pragma once
-#include "geometry.h"
+#include "GLFW/glfw3.h"
+#include "camera.h"
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -55,6 +56,7 @@ public:
 
   vkEngine* context;
   std::unique_ptr<Shape> mesh;
+  std::pair<std::vector<float>,std::vector<float>> minmax;
   // std::unique_ptr<objProperties> properties;
   UniformBufferObject MVP;
 
@@ -75,7 +77,7 @@ public:
   // methods
   void createMeshBuffers();
   void createMVPBuffer();
-  void updateUBO();
+  void updateUBO(camera* _sceneCamera);
   void buildDescriptorSets();
   void createDescriptorPool();
   void createMeshPipeline();
@@ -84,11 +86,15 @@ public:
   void destroyUniforBuffers();
   void prepareRenderProperties();
 
-  void injectMethods2commandB(VkCommandBuffer commandbuffer_);
+  void injectMethods2commandB(VkCommandBuffer commandbuffer_, camera* _sceneCamera);
 };
 
 struct renderObjectQueue {
   renderObjectQueue() { /* shapes.clear(); */ };
+  renderObjectQueue(vkEngine* context) {
+ sceneCamera = std::make_unique<camera>(context);  
+    cameraActive = false;
+  };
   ~renderObjectQueue() {
 
     std::cout << "renderQueue destructor called" << std::endl;
@@ -98,9 +104,16 @@ struct renderObjectQueue {
   //opaqye frontier, first transparent index object fron rbegin to rend
   int frontier = -1;
 
+
   void push_renderobject(std::unique_ptr<renderobject> ro_) ;
 
   void flush(VkCommandBuffer commandBuffer_) ;
 
   void flushGuiCalls();
+
+  camera* getSceneCamera() {
+    return sceneCamera.get();
+  }
+  bool cameraActive; 
+  std::unique_ptr<camera> sceneCamera;
 };

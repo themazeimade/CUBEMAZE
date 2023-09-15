@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "GLFW/glfw3.h"
 #include "imgui.h"
 // #include <__msvc_chrono.hpp>
 #include <chrono>
@@ -9,9 +10,38 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_LEFT_HANDED
 
-// const std::chrono::milliseconds
-//     _TARGET_FPS(static_cast<long long>(16.67)); // Target frame time for 60
-//     FPS
+Input::Input(vkEngine *_context) {
+  context = _context;
+  for (bool& i : button) {
+    i = false;
+  }
+};
+void Input::keys(GLFWwindow *win, int key, int scancode, int action, int mods) {
+  // if (key == GLFW_KEY_UNKNOWN)
+  //   return; // Don't accept unknown keys
+  if (action == GLFW_PRESS)
+    button[key] = true;
+  else if (action == GLFW_RELEASE)
+    button[key] = false;
+}
+void Input::handle(void) { // Things to do every frame
+  // auto app = reinterpret_cast<renderer *>(glfwGetWindowUserPointer(window));
+  auto app = reinterpret_cast<renderer *>(context);
+
+  // if (button[GLFW_KEY_ESCAPE]) {
+  //   if (app->objectQueue->cameraActive == true) {
+  //     app->objectQueue->cameraActive = false;
+  //     glfwSetInputMode(app->getwindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  //     return;
+  //   }
+  //   app->objectQueue->cameraActive = true;
+  //   glfwSetInputMode(app->getwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  // }
+  // context = reinterpret_cast<renderer*>(context);
+  if (app->objectQueue->cameraActive == true) {
+    app->objectQueue->sceneCamera->KeyboardHandler(button);
+  }
+}
 
 void renderer::renderLoop() {
 
@@ -20,16 +50,17 @@ void renderer::renderLoop() {
     glfwPollEvents();
 
     // handle input
-    appInput();
+    // appInput();
 
     // handle physics
     // std::cout << std::endl << std::endl << " New Frame" << std::endl;
-    physics->updatesimulation(objectQueue.get());
+    // physics->updatesimulation(objectQueue.get());
 
     draw_imgui();
     draw();
 
     vkDeviceWaitIdle(device);
+    KeyInput->handle();
   }
 }
 void renderer::draw_imgui() {
@@ -59,11 +90,14 @@ void renderer::draw_imgui() {
     ImGui::Text("This is some useful text."); // Display some text (you can
                                               // use a format strings too)
 
-    ImGui::SliderFloat("sides", &lookat0, 0.0f,
+    ImGui::SliderFloat("sides", &objectQueue->sceneCamera->getPosition()->x,
+                       -10.0f,
                        10.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-    ImGui::SliderFloat("up to down", &lookat1, 0.0f,
+    ImGui::SliderFloat("up to down",
+                       &objectQueue->sceneCamera->getPosition()->y, -10.0f,
                        10.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-    ImGui::SliderFloat("depth", &lookat2, 0.0f,
+    ImGui::SliderFloat("depth", &objectQueue->sceneCamera->getPosition()->z,
+                       -10.0f,
                        10.0f); // Edit 1 float using a slider from 0.0f to 1.0f
     ImGui::ColorEdit3(
         "clear color",
@@ -88,8 +122,9 @@ void renderer::draw_imgui() {
     // ImGui::Text("Was Clicked: %i, Last initial click at x: %.2f and y: %.2f",
     //             LeftClick, initialX, initialY);
     // ImGui::Spacing();
-    // ImGui::Text("Current click at x: %.2f and y: %.2f", currClickX, currClickY);
-    // ImGui::Text("click Direction: (%.2f , %.2f), click magnitude: %.2f",
+    // ImGui::Text("Current click at x: %.2f and y: %.2f", currClickX,
+    // currClickY); ImGui::Text("click Direction: (%.2f , %.2f), click
+    // magnitude: %.2f",
     //             click[0], click[1], clickLength);
     // ImGui::Text("clickratio: %.2f", clickRatio);
     // ImGui::Text("velocity x: %.2f, y: %.2f",
@@ -298,10 +333,82 @@ void renderer::appInput() {
     clickRatio = std::min(clickLength / hip, 1.f);
     click = glm::normalize(click) * clickRatio * MAX_VELOCITY;
     click[1] *= -1.f;
-    objectQueue->shapes.front()->mesh->properties->vvelocity = glm::vec3(click, 0.f);
-    objectQueue->shapes.front()->mesh->properties->fspeed = clickRatio * MAX_VELOCITY;
-    objectQueue->shapes.front()->physicsEnable = true; 
+    objectQueue->shapes.front()->mesh->properties->vvelocity =
+        glm::vec3(click, 0.f);
+    objectQueue->shapes.front()->mesh->properties->fspeed =
+        clickRatio * MAX_VELOCITY;
+    objectQueue->shapes.front()->physicsEnable = true;
     setVelocityCircle = false;
     // objectQueue->shapes.front()->setvelocity();
   }
+}
+
+void renderer::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+  auto app = reinterpret_cast<renderer *>(glfwGetWindowUserPointer(window));
+  if (app->objectQueue->cameraActive == true) {
+    app->objectQueue->sceneCamera->MouseHandler(xpos, ypos);
+  }
+  ImGuiIO &io = ImGui::GetIO();
+  if (io.WantCaptureMouse) {
+    return;
+  }
+  app->currClickX = xpos;
+  app->currClickY = ypos;
+}
+
+void renderer::mouse_button_callback(GLFWwindow *window, int button, int action,
+                                     int mods) {
+  ImGuiIO &io = ImGui::GetIO();
+  if (io.WantCaptureMouse) {
+    return;
+  }
+  auto app = reinterpret_cast<renderer *>(glfwGetWindowUserPointer(window));
+  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+    // glm::vec2 click = {app->currClickX - app->initialX,app->currClickY -
+    // app->initialY};
+    app->click[0] = app->currClickX - app->initialX;
+    app->click[1] = app->currClickY - app->initialY;
+    app->clickLength = glm::length(app->click);
+    app->LeftClick = false;
+    app->setVelocityCircle = true;
+    app->initialX = -1.;
+    app->initialY = -1.;
+  }
+
+  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    app->LeftClick = true;
+    app->drawCircle = true;
+    glfwGetCursorPos(window, &app->currClickX, &app->currClickY);
+    if (app->initialX < 0 || app->initialY < 0) {
+      glfwGetCursorPos(window, &app->initialX, &app->initialY);
+    }
+  }
+}
+void renderer::key_callback(GLFWwindow *window, int key, int scancode,
+                            int action, int mods) {
+  ImGuiIO &io = ImGui::GetIO();
+  if (io.WantCaptureKeyboard) {
+    return;
+  }
+  auto app = reinterpret_cast<renderer *>(glfwGetWindowUserPointer(window));
+  if (key == GLFW_KEY_ESCAPE && (action == GLFW_PRESS)) {
+    if (app->objectQueue->cameraActive == true) {
+      app->objectQueue->cameraActive = false;
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      return;
+    }
+    app->objectQueue->cameraActive = true;
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  }
+  // if (app->objectQueue->cameraActive == true) {
+  //   app->objectQueue->sceneCamera->KeyboardHandler(key, scancode, action,
+  //   mods);
+  // }
+  app->KeyInput->keys(window, key, scancode, action, mods);
+}
+
+void renderer::inputHandler() {
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
 }

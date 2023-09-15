@@ -1,3 +1,4 @@
+#pragma once
 #include <GLFW/glfw3.h>
 #include <array>
 #include <deque>
@@ -23,6 +24,9 @@
 #include <stdexcept>
 #include <thread>
 #include <iomanip>
+
+// #define STB_IMAGE_IMPLEMENTATION
+// #include <stb_image.h>
 
 #define _GRAVITY -9.8
 #define _AIRDENSITY 1.23
