@@ -1,4 +1,5 @@
 #include "shapes.h"
+#include "utils.h"
 #include <memory>
 
 class Square : public Shape {
@@ -13,6 +14,15 @@ public:
       v.pos = {(size / 2) * v.pos[0], (size / 2) * v.pos[1], 0.0f};
     }
     // buildBuffers();
+    collvertices = {{{-1.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+                {{1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+                {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+                {{-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}}};
+    collindices = {0, 1, 2, 2, 3, 0};
+    for (auto &v : collvertices) {
+      v.pos = {(size / 2) * v.pos[0], (size / 2) * v.pos[1], 0.0f};
+    }
+    type = vQuad;
   }
   ~Square(){};
 
@@ -26,6 +36,8 @@ public:
     shaderPrimitive = true;
     transparent = true;
     properties->fRadius = radius_;
+
+  type = vCircle;
   }
   // float radius;
 };
@@ -51,6 +63,7 @@ public:
     };
     indexCount = indices.size();
     // buildBuffers();
+    type = vCircle;
   };
   ~circleFan(){};
 
@@ -76,7 +89,23 @@ public:
       v.pos = {(size / 2) * v.pos[0], (size / 2) * v.pos[1],
                (size / 2) * v.pos[2]};
     }
+
+    collvertices = {{{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+                {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+                {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+                {{-1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
+                {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+                {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+                {{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+                {{-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}}};
+    collindices = {0, 1, 2, 2, 3, 0, 6, 5, 4, 4, 7, 6, 0, 3, 4, 3, 7, 4,
+               1, 6, 2, 6, 1, 5, 2, 6, 3, 3, 6, 7, 1, 0, 4, 1, 4, 5};
+    for (auto &v : collvertices) {
+      v.pos = {(size / 2) * v.pos[0], (size / 2) * v.pos[1],
+               (size / 2) * v.pos[2]};
+    }
     // buildBuffers();
+    type = vCube;
   }
   ~Cube(){};
 
@@ -144,7 +173,23 @@ public:
       v.pos = {(size / 2) * v.pos[0], (size / 2) * v.pos[1],
                (size / 2) * v.pos[2]};
     };
+
+    collvertices = {{{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+                {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+                {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+                {{-1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
+                {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+                {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+                {{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+                {{-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}}};
+    collindices = {0, 1, 2, 2, 3, 0, 6, 5, 4, 4, 7, 6, 0, 3, 4, 3, 7, 4,
+               1, 6, 2, 6, 1, 5, 2, 6, 3, 3, 6, 7, 1, 0, 4, 1, 4, 5};
+    for (auto &v : collvertices) {
+      v.pos = {(size / 2) * v.pos[0], (size / 2) * v.pos[1],
+               (size / 2) * v.pos[2]};
+    }
     // buildBuffers();
+    type = vCube;
   }
   ~CubeFace(){};
 

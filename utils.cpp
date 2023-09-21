@@ -105,3 +105,4 @@ bool line::pIntersection(glm::vec2 p1, glm::vec2 p2, glm::vec2 q1, glm::vec2 q2,
   intersection.y = intersectionY;
   return true;
 }
+

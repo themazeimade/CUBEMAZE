@@ -18,7 +18,7 @@ objProperties::objProperties() {
   fspeed = 0.0f;
   vforces = glm::vec3(0.0f, 0.0f, 0.0f);
   fNormalForce = 0.0f;
-  // fRadius = _radius;
+  fRadius = 0.3f;
   vgravity.x = 0.0f;
   vgravity.y = fmass * _GRAVITY;
   vImpactforces = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -29,55 +29,12 @@ objProperties::objProperties() {
 };
 
 void objProperties::CalcF() {
-  glm::vec3 vforcesImpostor = vforces;
+  // glm::vec3 vforcesImpostor = vforces;
   vforces = glm::vec3(0.f);
+  
 
-  // if(bObjectCollision) {
-  //
-  // }
-  if (bCollision == true || bObjectCollision == true) {
-    int HoV = 1;
-    if (vTangent.x == 1 || vTangent.x == -1)
-      HoV = 0;
-    float dirFriction = glm::dot(
-        vforcesImpostor, vTangent); // normal force on windd and gravity that
-    float dirVelocity =
-        glm::dot(vvelocity, vTangent); // normal force on windd and gravity that
-    if (bCollision == true) {
-      // handle friction
-      if (vvelocity[HoV] <= 0.01f && vvelocity[HoV] >= -0.01f) {
-        // std::cout << "hi im inside before htis" << std::endl;
-        if (glm::abs(dirFriction) <= glm::abs(fNormalForce) * _U_STATIC) {
-          // std::cout << "hi im inside this shitt" << std::endl;
-          vforces[HoV] = 0.0f;
-          vvelocity[HoV] = 0.0f;
-        }
-      } else {
-        glm::vec3 vfriction = vTangent;
-        if (dirVelocity < 0.0f) {
-          // std::cout << "hi im going to the left" << std::endl;
-          vfriction *= -1 * fNormalForce * static_cast<float>(_U_KINETIC);
-        } else {
-          // std::cout << "hi im goind to the rigth" << std::endl;
-          vfriction *= fNormalForce * static_cast<float>(_U_KINETIC);
-        }
-        vforces += vfriction;
-      }
-      fNormalForce = -1;
-    }
-    vforces += vImpactforces;
-
-    // if (bCollision == true) {
-    //   if (vvelocity[HoV] <= 0.2f) {
-    //     if (glm::abs(dirFriction) <= fNormalForce * _U_STATIC) {
-    //       vforces[HoV] = 0.0f;
-    //       vvelocity[HoV] = 0.0f;
-    //     }
-    //   }
-    // }
-
-  } else {
-    // std::cout << "adding external forces" << std::endl;
+  if (bCollision == false) {
+    
     vforces += vgravity;
 
     glm::vec3 vDrag(0.0f, 0.0f, 0.0f);
@@ -91,18 +48,24 @@ void objProperties::CalcF() {
         static_cast<double>(3.14159f * fRadius * fRadius) * _DRAG);
     vDrag *= fDrag;
     vforces += vDrag;
+    // std::cout << "hi" << std::endl;
 
     // // Wind
-    glm::vec3 vWind(0.0f, 0.0f, 0.0f);
-    vWind.x = static_cast<float>(
-        0.5 * _AIRDENSITY * _WINDSPEED * _WINDSPEED *
-        static_cast<double>(3.14159f * fRadius * fRadius) * _DRAG);
-    vforces += vWind;
+    // glm::vec3 vWind(0.0f, 0.0f, 0.0f);
+    // vWind.x = static_cast<float>(
+    //     0.5 * _AIRDENSITY * _WINDSPEED * _WINDSPEED *
+    //     static_cast<double>(3.14159f * fRadius * fRadius) * _DRAG);
+    // vforces += vWind;
+  } else {
+    vvelocity = {0.0f,-0.009f,0.0f};
+    vforces += vImpactforces;
+  vImpactforces = {0.0f, 0.0f, 0.0f};
   }
-
-  // std::cout << "forces x: " << vforces.x << std::endl;
-  // std::cout << "forces y: " << vforces.y << std::endl;
-  bObjectCollision = false;
+  // }
+  //
+  // // std::cout << "forces x: " << vforces.x << std::endl;
+  // // std::cout << "forces y: " << vforces.y << std::endl;
+  // bObjectCollision = false;
 }
 
 void objProperties::updateEuler(double dt) {
@@ -125,7 +88,6 @@ void objProperties::updateEuler(double dt) {
   // if (fspeed >= 0.1) {
   vpos += ds;
 
-  vImpactforces = {0.0f, 0.0f, 0.0f};
   // };
   // std::cout << "vprevPos = ("<< vprevPos.x << ";" << vprevPos.y << ")" <<
   // std::endl; std::cout << "vpos = ("<< vpos.x << ";" << vpos.y << ")" <<
@@ -277,8 +239,8 @@ void renderobject::updateUBO(camera *_sceneCamera) {
   ubo_.model = glm::translate(ubo_.model, mesh->properties->vpos);
   ubo_.model = glm::rotate(ubo_.model,mesh->properties->fAngle, glm::vec3(1.0f,0.0f,0.0f));
   ubo_.view =
-      glm::lookAt(*_sceneCamera->getPosition(),
-                  *_sceneCamera->getPosition() + _sceneCamera->frontCamera,
+      glm::lookAt(_sceneCamera->getPosition(),
+                  _sceneCamera->getPosition() + _sceneCamera->frontCamera,
                   _sceneCamera->upVector);
   ubo_.proj = _sceneCamera->getCameraProjM();
 

@@ -54,7 +54,7 @@ void renderer::renderLoop() {
 
     // handle physics
     // std::cout << std::endl << std::endl << " New Frame" << std::endl;
-    // physics->updatesimulation(objectQueue.get());
+    physics->updatesimulation(objectQueue.get());
 
     draw_imgui();
     draw();
@@ -84,19 +84,19 @@ void renderer::draw_imgui() {
     objectQueue->flushGuiCalls();
     ImGui::End();
 
-    ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!"
+    ImGui::Begin("Camera pos"); // Create a window called "Hello, world!"
                                    // and append into it.
 
-    ImGui::Text("This is some useful text."); // Display some text (you can
+    // ImGui::Text("This is some useful text."); // Display some text (you can
                                               // use a format strings too)
 
-    ImGui::SliderFloat("sides", &objectQueue->sceneCamera->getPosition()->x,
+    ImGui::SliderFloat("sides", &(objectQueue->sceneCamera->getPosition().x),
                        -10.0f,
                        10.0f); // Edit 1 float using a slider from 0.0f to 1.0f
     ImGui::SliderFloat("up to down",
-                       &objectQueue->sceneCamera->getPosition()->y, -10.0f,
+                       &(objectQueue->sceneCamera->getPosition().y), -10.0f,
                        10.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-    ImGui::SliderFloat("depth", &objectQueue->sceneCamera->getPosition()->z,
+    ImGui::SliderFloat("depth", &(objectQueue->sceneCamera->getPosition().z),
                        -10.0f,
                        10.0f); // Edit 1 float using a slider from 0.0f to 1.0f
     ImGui::ColorEdit3(
@@ -109,6 +109,7 @@ void renderer::draw_imgui() {
 
     ImGui::SameLine();
     ImGui::Text("counter = %d", counter);
+    ImGui::Text("collision = %d", objectQueue->sceneCamera->collisionmesh->properties->bCollision);
 
     ImGuiIO &io = ImGui::GetIO();
     (void)io;

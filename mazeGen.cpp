@@ -297,30 +297,32 @@ void mazeGen::Queue3Dscene(renderer *_app) {
         b->prepareRenderProperties();
         b->mesh->properties->vpos = {static_cast<float>(i), 0.5f,
                                      static_cast<float>(j)};
+        // b->mesh->updateCollisionVerts();
 
-        glm::vec4 minpos = {b->mesh->vertices[4].pos, 0.0f};
-        glm::vec4 maxpos = {b->mesh->vertices[2].pos, 0.0f};
-        glm::vec3 min =
-            glm::translate(glm::mat4(1.0f), b->mesh->properties->vpos) * minpos;
-        glm::vec3 max =
-            glm::translate(glm::mat4(1.0f), b->mesh->properties->vpos) * maxpos;
-        b->minmax.first = {min[0],min[1],min[2]};
-        b->minmax.second = {max[0],max[1],max[2]};
+        // glm::vec4 minpos = {b->mesh->vertices[4].pos, 0.0f};
+        // glm::vec4 maxpos = {b->mesh->vertices[2].pos, 0.0f};
+        // glm::vec3 min =
+        //     glm::translate(glm::mat4(1.0f), b->mesh->properties->vpos) * minpos;
+        // glm::vec3 max =
+        //     glm::translate(glm::mat4(1.0f), b->mesh->properties->vpos) * maxpos;
+        // b->minmax.first = {min[0],min[1],min[2]};
+        // b->minmax.second = {max[0],max[1],max[2]};
 
         _app->objectQueue->push_renderobject(std::move(b));
 
       } else if (maze[i][j] == 2) {
-        *_app->objectQueue->getSceneCamera()->getPosition() = {
+        _app->objectQueue->getSceneCamera()->getPosition() = {
             static_cast<float>(i), 0.8, static_cast<float>(j)};
+        // _app->objectQueue->getSceneCamera()->collisionmesh->updateCollisionVerts();
 
-        glm::vec4 minpos = {_app->objectQueue->getSceneCamera()->collisionmesh->vertices[4].pos, 0.0f};
-        glm::vec4 maxpos = {_app->objectQueue->getSceneCamera()->collisionmesh->vertices[2].pos, 0.0f};
-        glm::vec3 min =
-            glm::translate(glm::mat4(1.0f), *_app->objectQueue->getSceneCamera()->getPosition()) * minpos;
-        glm::vec3 max =
-            glm::translate(glm::mat4(1.0f), *_app->objectQueue->getSceneCamera()->getPosition()) * maxpos;
-        _app->objectQueue->getSceneCamera()->minmax.first = {min[0],min[1],min[2]};
-        _app->objectQueue->getSceneCamera()->minmax.second = {max[0],max[1],max[2]};
+        // glm::vec4 minpos = {_app->objectQueue->getSceneCamera()->collisionmesh->vertices[4].pos, 0.0f};
+        // glm::vec4 maxpos = {_app->objectQueue->getSceneCamera()->collisionmesh->vertices[2].pos, 0.0f};
+        // glm::vec3 min =
+        //     glm::translate(glm::mat4(1.0f), *_app->objectQueue->getSceneCamera()->getPosition()) * minpos;
+        // glm::vec3 max =
+        //     glm::translate(glm::mat4(1.0f), *_app->objectQueue->getSceneCamera()->getPosition()) * maxpos;
+        // _app->objectQueue->getSceneCamera()->minmax.first = {min[0],min[1],min[2]};
+        // _app->objectQueue->getSceneCamera()->minmax.second = {max[0],max[1],max[2]};
       }
     }
   }

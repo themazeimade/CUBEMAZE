@@ -14,11 +14,11 @@ public:
   void MouseHandler(double xpos, double ypos);
   // void KeyboardHandler(int key, int scancode, int action, int mods);
   void KeyboardHandler(std::array<bool,GLFW_KEY_MENU+1> b);
-  glm::vec3* getPosition();
+  glm::vec3& getPosition();
 
   glm::vec3 frontCamera;
   glm::vec3 upVector;
-  std::pair<std::vector<float>,std::vector<float>> minmax;
+  // std::pair<std::vector<float>,std::vector<float>> minmax;
   std::unique_ptr<Shape> collisionmesh;
 private:
   // glm::vec3 vpos;
@@ -27,6 +27,8 @@ private:
   float pitchAngle;
   glm::vec3 vvelocity;
   // float fspeed;
+  float fspeed;
+  bool lockjump;
   float sensitivity;
   glm::mat4 cameraView;
   glm::mat4 cameraProj;

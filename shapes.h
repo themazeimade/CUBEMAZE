@@ -26,15 +26,14 @@ struct objProperties {
   bool bObjectCollision;
   bool goingOut;
 
-
   void CalcF();
   void updateEuler(double dt);
 };
 
 class Shape {
 public:
-  Shape(){
-      // buildBuffers();
+  Shape() {
+    // buildBuffers();
     properties = std::make_unique<objProperties>();
   };
   virtual ~Shape(){
@@ -52,12 +51,46 @@ public:
   uint32_t indexCount;
   std::vector<Vertex> vertices;
   std::vector<uint16_t> indices;
+  std::vector<Vertex> collvertices;
+  std::vector<uint16_t> collindices;
+
+  glm::vec3 findfurthestpoint(glm::vec3 direction) {
+    float dotMax = -INFINITY;
+    glm::vec3 furthestpoint(0.0f);
+    auto transformedVerts = getWorldVertices();
+    for (auto v : transformedVerts) {
+      float localDot = glm::dot(v, direction);
+      if (dotMax < localDot) {
+        dotMax = localDot;
+        furthestpoint = v;
+      }
+    }
+    return furthestpoint;
+  };
+
+  // void updateCollisionVerts() {
+  //   for (auto &vert : collvertices) {
+  //     glm::vec3 newvert = glm::translate(glm::mat4(1.0f), properties->vpos) *
+  //                         glm::vec4(vert.pos, 1.0f);
+  //     vert.pos = newvert;
+  //   }
+  // }
+
+  std::vector<glm::vec3> getWorldVertices() {
+    std::vector<glm::vec3> a;
+    auto TranforMat = glm::translate(glm::mat4(1.0f), properties->vpos);
+    TranforMat = glm::rotate(TranforMat, properties->fAngle, glm::vec3(1.0f,0.0f,0.0f));
+    for (auto &vert : collvertices) {
+      a.push_back(TranforMat * glm::vec4(vert.pos, 1.0f));
+    }
+    return a;
+  }
+
   bool shaderPrimitive = false;
   bool transparent = false;
   std::unique_ptr<objProperties> properties;
-// protected:
+  // protected:
   // void buildBuffers();
   // std::vector<Vertex> getVertices();
   // void destroyBuffers();
 };
-

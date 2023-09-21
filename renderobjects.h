@@ -56,7 +56,6 @@ public:
 
   vkEngine* context;
   std::unique_ptr<Shape> mesh;
-  std::pair<std::vector<float>,std::vector<float>> minmax;
   // std::unique_ptr<objProperties> properties;
   UniformBufferObject MVP;
 

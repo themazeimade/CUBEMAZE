@@ -1,6 +1,9 @@
 #include "physics.h"
+#include "imgui.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/geometric.hpp>
+#include <memory>
+#include <vector>
 
 // void physicsEngine::checkObjectsCollisions(renderObjectQueue *queue) {
 //   // int frontier = queue->frontier;
@@ -271,72 +274,319 @@ bool physicsEngine::checkWallCollisions(renderobject *boundary,
   return hasCollision;
 };
 void physicsEngine::updatesimulation(renderObjectQueue *queue) {
-  int &_frontier = queue->frontier;
-  if (_frontier == -1) {
-    std::cout << "frontier not iniated" << std::endl;
-    return;
-  }
+  // int &_frontier = queue->frontier;
+  // if (_frontier == -1) {
+  //   std::cout << "frontier not iniated" << std::endl;
+  //   return;
+  // }
   double dt = _TIMESTEP;
 
-  auto boundingBox = queue->shapes.back().get();
+  // auto boundingBox = queue->shapes.back().get();
+    auto camera = queue->getSceneCamera();
   for (int i = 0; i < _STEPCOUNT; i++) {
-    // checkObjectsCollisions(queue);
-    // wall collisions below
-    for (auto it = queue->shapes.begin() + _frontier;
-         it >= queue->shapes.begin(); it--) {
-      auto _simObject = it->get();
-      auto buffPrevPos = _simObject->mesh->properties->vpos;
-      if (_simObject->physicsEnable == false)
-        continue;
-      _simObject->mesh->properties->bCollision =
-          checkWallCollisions(boundingBox, _simObject);
 
-      if (_simObject->mesh->properties->bCollision == false &&
-          _simObject->mesh->properties->goingOut == false)
-        _simObject->mesh->properties->vprevPos = buffPrevPos;
+    for (auto it = queue->shapes.begin(); it < queue->shapes.end(); it++) {
+      simplex local;
+      camera->collisionmesh->properties->bCollision = CameracollisionDetection(
+          camera->collisionmesh.get(), (*it)->mesh.get(), local);
 
-      _simObject->mesh->properties->goingOut = false;
-      // _simObject->mesh->properties->CalcF();
-      // _simObject->mesh->properties->updateEuler(dt);
-      _simObject = nullptr;
+      if (camera->collisionmesh->properties->bCollision == true) {
+        if ((*it)->mesh->type != vQuad) {
+          gtk::epa(camera->collisionmesh.get(), (*it)->mesh.get(), local);
+        }
+      }
     }
-
-    checkObjectsCollisions(queue);
-    // std::cout << "finished object coll" << std::endl;
-
-    for (auto it = queue->shapes.begin() + _frontier;
-         it >= queue->shapes.begin(); it--) {
-      auto _simObject = it->get();
-      //
-      if (_simObject->physicsEnable == false)
-        continue;
-      //
-      _simObject->mesh->properties->CalcF();
-      _simObject->mesh->properties->updateEuler(dt);
-      // _simObject->mesh->properties->vImpactforces = {0.0f,0.0f,0.0f};
-      _simObject = nullptr;
-    }
+        camera->collisionmesh->properties->CalcF();
+        camera->collisionmesh->properties->updateEuler(dt);
+  // std::cout << camera->collisionmesh->properties->fspeed<< std::endl;
   }
-  boundingBox = nullptr;
-  queue = nullptr;
 }
 
-bool physicsEngine::collisionDetection(renderObjectQueue* queue) {
-  auto camera = queue->getSceneCamera();
-  auto& objectscene = queue->shapes;
-  for (auto it = objectscene.begin(); it<objectscene.end(); it++){
-    auto a = camera->minmax;
-    renderobject* box = (*it).get();  
-    auto b = box->minmax;
-      return (
-    a.first[0] <= b.second[0] &&
-    a.second[0] >= b.first[0] &&
-    a.first[1] <= b.second[1] &&
-    a.second[1] >= b.first[1] &&
-    a.first[2] <= b.second[2] &&
-    a.second[2] >= b.first[2]
-  );
-  };
-return true; 
+bool gtk::SameDirection(glm::vec3 a, glm::vec3 b) { return dot(a, b) > 0; }
+
+bool simplex::handleSimplex(simplex &_simplex, glm::vec3 &direction) {
+  switch (_simplex.vertices.size()) {
+  case 2:
+    return gtk::line(_simplex, direction);
+  case 3:
+    return gtk::triangle(_simplex, direction);
+  case 4:
+    return gtk::tetrahedron(_simplex, direction);
+  }
+  return false;
 };
 
+bool gtk::line(simplex &_simplex, glm::vec3 &direction) {
+  glm::vec3 a = _simplex.vertices[0];
+  glm::vec3 b = _simplex.vertices[1];
+
+  glm::vec3 ab = b - a;
+  glm::vec3 ao = -a;
+
+  if (SameDirection(ab, ao)) {
+    direction = cross(cross(ab, ao), ab);
+  }
+
+  else {
+    _simplex.vertices.pop_back();
+    _simplex.vertices = {a};
+    direction = ao;
+  }
+
+  return false;
+};
+
+bool gtk::triangle(simplex &_simplex, glm::vec3 &direction) {
+  glm::vec3 a = _simplex.vertices[0];
+  glm::vec3 b = _simplex.vertices[1];
+  glm::vec3 c = _simplex.vertices[2];
+
+  glm::vec3 ab = b - a;
+  glm::vec3 ac = c - a;
+  glm::vec3 ao = -a;
+
+  glm::vec3 abc = glm::cross(ab, ac);
+
+  if (SameDirection(glm::cross(abc, ac), ao)) {
+    if (SameDirection(ac, ao)) {
+      _simplex.vertices.pop_back();
+      _simplex.vertices = {a, c};
+      direction = glm::cross(glm::cross(ac, ao), ac);
+    }
+
+    else {
+      _simplex.vertices.pop_back();
+      _simplex.vertices = {a, b};
+      return gtk::line(_simplex, direction);
+    }
+  }
+
+  else {
+    if (SameDirection(cross(ab, abc), ao)) {
+      _simplex.vertices.pop_back();
+      _simplex.vertices = {a, b};
+      return gtk::line(_simplex, direction);
+    }
+
+    else {
+      if (SameDirection(abc, ao)) {
+        direction = abc;
+      }
+
+      else {
+        _simplex.vertices = {a, c, b};
+        direction = -abc;
+      }
+    }
+  }
+
+  return false;
+};
+
+bool gtk::tetrahedron(simplex &_simplex, glm::vec3 &direction) {
+  glm::vec3 a = _simplex.vertices[0];
+  glm::vec3 b = _simplex.vertices[1];
+  glm::vec3 c = _simplex.vertices[2];
+  glm::vec3 d = _simplex.vertices[3];
+
+  glm::vec3 ab = b - a;
+  glm::vec3 ac = c - a;
+  glm::vec3 ad = d - a;
+  glm::vec3 ao = -a;
+
+  glm::vec3 abc = cross(ab, ac);
+  glm::vec3 acd = cross(ac, ad);
+  glm::vec3 adb = cross(ad, ab);
+
+  if (SameDirection(abc, ao)) {
+    _simplex.vertices.pop_back();
+    _simplex.vertices = {a, b, c};
+    return gtk::triangle(_simplex, direction);
+  }
+
+  if (SameDirection(acd, ao)) {
+    _simplex.vertices.pop_back();
+    _simplex.vertices = {a, c, d};
+    return gtk::triangle(_simplex, direction);
+  }
+
+  if (SameDirection(adb, ao)) {
+    _simplex.vertices.pop_back();
+    _simplex.vertices = {a, d, b};
+    return gtk::triangle(_simplex, direction);
+  }
+
+  return true;
+};
+
+bool physicsEngine::CameracollisionDetection(Shape *camera, Shape *object,
+                                             simplex &simplex) {
+
+  // simplex simplex;
+  if (object->type == vQuad) {
+    glm::vec3 orientation(0.0f);
+
+    auto objectVerts = object->getWorldVertices();
+    auto ab = objectVerts[1] - objectVerts[0];
+    auto ac = objectVerts[2] - objectVerts[0];
+    orientation = glm::normalize(glm::cross(ab, ac));
+
+    auto camera_point = camera->findfurthestpoint(-orientation);
+
+    auto oC = objectVerts[0] - camera_point;
+    auto mindistance = glm::dot(oC, orientation);
+    if (mindistance > 0.0f) {
+      // collision true;
+      mindistance += 0.001f;
+      glm::vec3 deltaPos = orientation * mindistance;
+
+      camera->properties->vpos += deltaPos;
+      return true;
+    }
+  }
+
+  glm::vec3 direction =
+      glm::normalize(object->properties->vpos - camera->properties->vpos);
+
+  simplex.vertices[0] = vSupport(camera, object, direction);
+  direction = glm::vec3(0.0f) - simplex.vertices[0];
+  while (true) {
+    auto A = vSupport(camera, object, direction);
+    if (glm::dot(A, direction) < 0.0f)
+      return false;
+    simplex.vertices.push_front(A);
+    if (simplex::handleSimplex(simplex, direction) == true) {
+      return true;
+    };
+  };
+  return true;
+};
+
+glm::vec3 physicsEngine::vSupport(Shape *camera, Shape *object,
+                                  glm::vec3 direction) {
+  return camera->findfurthestpoint(direction) -
+         object->findfurthestpoint(-direction);
+}
+
+void gtk::epa(Shape *A, Shape *B, simplex &_simplex) {
+  std::vector<glm::vec3> polytope(_simplex.vertices.begin(),
+                                  _simplex.vertices.end());
+  std::vector<size_t> faces = {0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2};
+
+  auto [normals, minFace] = gtk::GetFaceNormals(polytope, faces);
+
+  glm::vec3 minNormal;
+  float minDistance = FLT_MAX;
+
+  while (minDistance == FLT_MAX) {
+    minNormal = {normals[minFace].x, normals[minFace].y, normals[minFace].z};
+    minDistance = normals[minFace].w;
+
+    glm::vec3 support = physicsEngine::vSupport(A, B, minNormal);
+    float sDistance = glm::dot(minNormal, support);
+
+    if (glm::abs(sDistance - minDistance) > 0.001f) {
+      minDistance = FLT_MAX;
+      std::vector<std::pair<size_t, size_t>> uniqueEdges;
+
+      for (size_t i = 0; i < normals.size(); i++) {
+        if (gtk::SameDirection(normals[i], support)) {
+          size_t f = i * 3;
+
+          gtk::AddIfUniqueEdge(uniqueEdges, faces, f, f + 1);
+          gtk::AddIfUniqueEdge(uniqueEdges, faces, f + 1, f + 2);
+          gtk::AddIfUniqueEdge(uniqueEdges, faces, f + 2, f);
+
+          faces[f + 2] = faces.back();
+          faces.pop_back();
+          faces[f + 1] = faces.back();
+          faces.pop_back();
+          faces[f] = faces.back();
+          faces.pop_back();
+
+          normals[i] = normals.back(); // pop-erase
+          normals.pop_back();
+
+          i--;
+        }
+      }
+      std::vector<size_t> newFaces;
+      for (auto [edgeIndex1, edgeIndex2] : uniqueEdges) {
+        newFaces.push_back(edgeIndex1);
+        newFaces.push_back(edgeIndex2);
+        newFaces.push_back(polytope.size());
+      }
+
+      polytope.push_back(support);
+
+      auto [newNormals, newMinFace] = GetFaceNormals(polytope, newFaces);
+
+      float oldMinDistance = FLT_MAX;
+      for (size_t i = 0; i < normals.size(); i++) {
+        if (normals[i].w < oldMinDistance) {
+          oldMinDistance = normals[i].w;
+          minFace = i;
+        }
+      }
+
+      if (newNormals[newMinFace].w < oldMinDistance) {
+        minFace = newMinFace + normals.size();
+      }
+
+      faces.insert(faces.end(), newFaces.begin(), newFaces.end());
+      normals.insert(normals.end(), newNormals.begin(), newNormals.end());
+    }
+  }
+  glm::vec3 vDeltaPos =
+      glm::normalize(minNormal) * (minDistance + 0.001f) * -1.0f;
+  A->properties->vpos += vDeltaPos;
+}; // collision resolution
+
+std::pair<std::vector<glm::vec4>, size_t>
+gtk::GetFaceNormals(const std::vector<glm::vec3> &polytope,
+                    const std::vector<size_t> &faces) {
+  std::vector<glm::vec4> normals;
+  size_t minTriangle = 0;
+  float minDistance = FLT_MAX;
+
+  for (size_t i = 0; i < faces.size(); i += 3) {
+    glm::vec3 a = polytope[faces[i]];
+    glm::vec3 b = polytope[faces[i + 1]];
+    glm::vec3 c = polytope[faces[i + 2]];
+
+    glm::vec3 normal = glm::normalize(cross(b - a, c - a));
+    float distance = glm::dot(normal, a);
+
+    if (distance < 0) {
+      normal *= -1;
+      distance *= -1;
+    }
+
+    normals.emplace_back(normal, distance);
+
+    if (distance < minDistance) {
+      minTriangle = i / 3;
+      minDistance = distance;
+    }
+  }
+
+  return {normals, minTriangle};
+}
+
+void gtk::AddIfUniqueEdge(std::vector<std::pair<size_t, size_t>> &edges,
+                          const std::vector<size_t> &faces, size_t a,
+                          size_t b) {
+  auto reverse = std::find(              //      0--<--3
+      edges.begin(),                     //     / \ B /   A: 2-0
+      edges.end(),                       //    / A \ /    B: 0-2
+      std::make_pair(faces[b], faces[a]) //   1-->--2
+  );
+
+  if (reverse != edges.end()) {
+    edges.erase(reverse);
+  }
+
+  else {
+    edges.emplace_back(faces[a], faces[b]);
+  }
+}

@@ -88,6 +88,7 @@ struct Vertex {
 
   static std::array<VkVertexInputAttributeDescription, 3>
   getAttributeDescriptions();
+
 };
 
 const uint32_t WIDTH = 800;
@@ -111,6 +112,7 @@ enum ShapeType {
   vTriangle = 0,
   vQuad = 1,
   vCircle = 2,
+  vCube = 3,
 };
 
 struct UniformBufferObject {
