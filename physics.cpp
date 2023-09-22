@@ -296,8 +296,10 @@ void physicsEngine::updatesimulation(renderObjectQueue *queue) {
         }
       }
     }
+    if(camera->freeCamera != true) {
         camera->collisionmesh->properties->CalcF();
         camera->collisionmesh->properties->updateEuler(dt);
+    }
   // std::cout << camera->collisionmesh->properties->fspeed<< std::endl;
   }
 }

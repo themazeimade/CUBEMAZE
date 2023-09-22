@@ -21,7 +21,7 @@ int main() {
     // app->objectQueue->push_renderobject(std::move(b));
     
     // setup only mesh
-    app->renderLoop();
+    app->render3D();
   } catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;

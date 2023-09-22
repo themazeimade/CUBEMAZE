@@ -59,8 +59,8 @@ void objProperties::CalcF() {
   } else {
     vvelocity = {0.0f,-0.009f,0.0f};
     vforces += vImpactforces;
-  vImpactforces = {0.0f, 0.0f, 0.0f};
   }
+  vImpactforces = {0.0f, 0.0f, 0.0f};
   // }
   //
   // // std::cout << "forces x: " << vforces.x << std::endl;

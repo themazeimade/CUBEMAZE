@@ -43,7 +43,7 @@ void Input::handle(void) { // Things to do every frame
   }
 }
 
-void renderer::renderLoop() {
+void renderer::render3D() {
 
   while (!glfwWindowShouldClose(window)) {
 
@@ -103,12 +103,17 @@ void renderer::draw_imgui() {
         "clear color",
         (float *)&clear_color); // Edit 3 floats representing a color
 
-    if (ImGui::Button("Button")) // Buttons return true when clicked (most
+    if (ImGui::Button("FreeCamera")) {
+      if(objectQueue->sceneCamera->freeCamera == true) {
+        objectQueue->sceneCamera->freeCamera = false;
+      } else {
+        objectQueue->sceneCamera->freeCamera = true;
+      };
+    } // Buttons return true when clicked (most
                                  // widgets return true when edited/activated)
-      counter++;
 
     ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
+    // ImGui::Text("counter = %d", counter);
     ImGui::Text("collision = %d", objectQueue->sceneCamera->collisionmesh->properties->bCollision);
 
     ImGuiIO &io = ImGui::GetIO();

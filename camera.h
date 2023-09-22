@@ -18,6 +18,7 @@ public:
 
   glm::vec3 frontCamera;
   glm::vec3 upVector;
+  bool freeCamera;
   // std::pair<std::vector<float>,std::vector<float>> minmax;
   std::unique_ptr<Shape> collisionmesh;
 private:

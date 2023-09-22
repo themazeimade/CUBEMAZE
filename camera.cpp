@@ -1,8 +1,9 @@
 #include "camera.h"
 #include "GLFW/glfw3.h"
+#include "imgui.h"
 
 camera ::camera(vkEngine *_context) {
-  
+
   collisionmesh = std::make_unique<Cube>(0.75f);
   // minmax = {{},{},{}}
   //  https://stackoverflow.com/questions/22194424/creating-a-view-matrix-with-glm
@@ -16,7 +17,7 @@ camera ::camera(vkEngine *_context) {
   float width = context->getswExtent().width;
   float height = context->getswExtent().height;
   firstMouse = true;
-  ;
+  freeCamera = false;
   sensitivity = 0.1;
   float yawAngle = 90.0f;
   float pitchAngle = 0.0f;
@@ -126,33 +127,55 @@ void camera::MouseHandler(double xpos, double ypos) {
 
 void camera::KeyboardHandler(std::array<bool, GLFW_KEY_MENU + 1> b) {
   if (b[GLFW_KEY_W]) {
-    collisionmesh->properties->vpos += fspeed * frontCamera;
+    if (freeCamera) {
+      collisionmesh->properties->vpos += fspeed * frontCamera;
+    } else {
+      collisionmesh->properties->vpos +=
+          fspeed * -glm::normalize(
+                       glm::cross(glm::cross(frontCamera, upVector), upVector));
+    }
   }
   if (b[GLFW_KEY_S]) {
-    collisionmesh->properties->vpos -= fspeed * frontCamera;
+    if (freeCamera) {
+      collisionmesh->properties->vpos -= fspeed * frontCamera;
+    } else {
+      collisionmesh->properties->vpos -=
+          fspeed * -glm::normalize(
+                       glm::cross(glm::cross(frontCamera, upVector), upVector));
+    }
   }
   if (b[GLFW_KEY_A]) {
-    collisionmesh->properties->vpos -= fspeed * glm::normalize(glm::cross(frontCamera, upVector));
+    // if(freeCamera) {
+    collisionmesh->properties->vpos -=
+        fspeed * glm::normalize(glm::cross(frontCamera, upVector));
+    // } else {
+    //
+    // }
   }
   if (b[GLFW_KEY_D]) {
-    collisionmesh->properties->vpos += fspeed * glm::normalize(glm::cross(frontCamera, upVector));
+    // if(freeCamera) {
+    collisionmesh->properties->vpos +=
+        fspeed * glm::normalize(glm::cross(frontCamera, upVector));
+    // } else {
+    //
+    // }
   }
-  if(b[GLFW_KEY_SPACE]) {
-    if(lockjump == false) {
-    collisionmesh->properties->vImpactforces += glm::vec3(0.0f,900.0f,0.0f);
+  if (b[GLFW_KEY_SPACE]) {
+    if (lockjump == false) {
+      collisionmesh->properties->vImpactforces += glm::vec3(0.0f, 900.0f, 0.0f);
       lockjump = true;
-    // b[GLFW_KEY_SPACE] = false;
+      // b[GLFW_KEY_SPACE] = false;
     }
   } else {
     lockjump = false;
   }
-  
+
   // cameraView = glm::lookAt(vpos,vpos+frontCamera,upVector);
   float width = context->getswExtent().width;
-  float height  = context->getswExtent().height;
+  float height = context->getswExtent().height;
   cameraProj =
       glm::perspective(glm::radians(90.0f), width / height, 0.1f, 100.f);
   cameraProj[1][1] *= -1;
 };
 
-glm::vec3& camera::getPosition() { return collisionmesh->properties->vpos; };
+glm::vec3 &camera::getPosition() { return collisionmesh->properties->vpos; };

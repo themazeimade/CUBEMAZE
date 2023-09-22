@@ -27,7 +27,7 @@ public:
     init_imgui();
   };
   ~renderer() { std::cout << "renderer destructor called" << std::endl; };
-  void renderLoop();
+  void render3D();
 
   std::unique_ptr<renderObjectQueue> objectQueue;
   std::unique_ptr<physicsEngine> physics;
