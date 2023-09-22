@@ -204,7 +204,7 @@ void mazeGen::handleAB() {
   std::array<int, 2> pB;
   int pathOA = distanceMap[pA][3];
   std::cout << "pathOA" << pathOA << std::endl;
-  std::array<int, 2> End;
+  std::array<int, 2> End = {0,0};
   for (int i = 1; i < size; i++) {
     pB = {i + 1, 1};
     if (i + 1 < size && maze[i + 1][1] == 1) {

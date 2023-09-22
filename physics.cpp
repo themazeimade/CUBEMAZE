@@ -450,7 +450,8 @@ bool physicsEngine::CameracollisionDetection(Shape *camera, Shape *object,
   glm::vec3 direction =
       glm::normalize(object->properties->vpos - camera->properties->vpos);
 
-  simplex.vertices[0] = vSupport(camera, object, direction);
+  auto Z = vSupport(camera, object, direction);
+  simplex.vertices.push_front(Z);
   direction = glm::vec3(0.0f) - simplex.vertices[0];
   while (true) {
     auto A = vSupport(camera, object, direction);

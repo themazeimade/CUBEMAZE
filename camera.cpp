@@ -19,15 +19,15 @@ camera ::camera(vkEngine *_context) {
   firstMouse = true;
   freeCamera = false;
   sensitivity = 0.1;
-  float yawAngle = 90.0f;
-  float pitchAngle = 0.0f;
+  yawAngle = 90.0f;
+  pitchAngle = 0.0f;
   lastY = height / 2;
   lastX = width / 2;
 
   glm::vec3 direction = {
-      cos(glm::radians(yawAngle)) * cos(glm::radians(pitchAngle)),
-      sin(glm::radians(pitchAngle)),
-      sin(glm::radians(yawAngle)) * cos(glm::radians(pitchAngle))};
+      glm::cos(glm::radians(yawAngle)) * glm::cos(glm::radians(pitchAngle)),
+      glm::sin(glm::radians(pitchAngle)),
+      glm::sin(glm::radians(yawAngle)) * glm::cos(glm::radians(pitchAngle))};
   frontCamera = glm::normalize(direction);
 
   cameraProj =
@@ -92,9 +92,9 @@ void camera::MouseHandler(double xpos, double ypos) {
     pitchAngle = -89.0f;
 
   glm::vec3 direction = {
-      cos(glm::radians(yawAngle)) * cos(glm::radians(pitchAngle)),
-      sin(glm::radians(pitchAngle)),
-      sin(glm::radians(yawAngle)) * cos(glm::radians(pitchAngle))};
+      glm::cos(glm::radians(yawAngle)) * glm::cos(glm::radians(pitchAngle)),
+      glm::sin(glm::radians(pitchAngle)),
+      glm::sin(glm::radians(yawAngle)) * glm::cos(glm::radians(pitchAngle))};
   frontCamera = glm::normalize(direction);
 
   // cameraView = glm::lookAt(vpos,vpos+frontCamera,upVector);

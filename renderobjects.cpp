@@ -21,6 +21,7 @@ objProperties::objProperties() {
   fRadius = 0.3f;
   vgravity.x = 0.0f;
   vgravity.y = fmass * _GRAVITY;
+  vgravity.z = 0.0f;
   vImpactforces = glm::vec3(0.0f, 0.0f, 0.0f);
   vTangent = glm::vec3(0.0f);
   bObjectCollision = false;
@@ -41,11 +42,14 @@ void objProperties::CalcF() {
     float fDrag(0.0f);
 
     vDrag -= vvelocity;
-    glm::normalize(vDrag);
+    if (glm::length(vvelocity) != 0) {
+        vDrag = glm::normalize(vDrag);
+    }
 
-    fDrag = static_cast<float>(
-        0.5 * _AIRDENSITY * static_cast<double>(fspeed * fspeed) *
-        static_cast<double>(3.14159f * fRadius * fRadius) * _DRAG);
+
+    fDrag = 0.5f * static_cast<float>(_AIRDENSITY) * (fspeed * fspeed) *
+        (3.14159f * fRadius * fRadius) * static_cast<float>(_DRAG);
+    
     vDrag *= fDrag;
     vforces += vDrag;
     // std::cout << "hi" << std::endl;
@@ -69,8 +73,8 @@ void objProperties::CalcF() {
 }
 
 void objProperties::updateEuler(double dt) {
-  glm::vec3 a;
-  glm::vec3 dv;
+  glm::vec3 a(0.0f);
+  glm::vec3 dv(0.0f);
   glm::vec3 ds(0.0f);
 
   a = vforces / fmass;
@@ -246,11 +250,20 @@ void renderobject::updateUBO(camera *_sceneCamera) {
 
   memcpy(uniformBuffersMapped[context->getCurrFrame()], &ubo_, sizeof(ubo_));
 }
+#ifdef _MSC_VER
+#define DERIV_VERTEXSHADER "../../shaders/vert01.spv"
+#define DERIV_FRAGSHADER "../../shaders/frag01.spv"
+#endif // DEBUG
+//
+#ifdef __MINGW32__ 
+#define DERIV_VERTEXSHADER "../shaders/vert01.spv"
+#define DERIV_FRAGSHADER "../shaders/frag01.spv"
+#endif
 
 void renderobject::createMeshPipeline() {
   if (mesh->shaderPrimitive != true) {
-    context->createDerivativePipeline("../shaders/vert01.spv",
-                                      "../shaders/frag01.spv", pipeline);
+    context->createDerivativePipeline(DERIV_VERTEXSHADER,
+                                      DERIV_FRAGSHADER, pipeline);
   }
 }
 

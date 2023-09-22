@@ -8,6 +8,18 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#ifdef _MSC_VER
+#define TEXTURE "../../textures/crate_t.jpg"
+#define DEFAULT_VERTEXSHADER "../../shaders/vert.spv"
+#define DEFAULT_FRAGSHADER "../../shaders/frag.spv"
+#endif // DEBUG
+
+#ifdef __MINGW32__ 
+#define TEXTURE "../textures/crate_t.jpg"
+#define DEFAULT_VERTEXSHADER "../shaders/vert.spv"
+#define DEFAULT_FRAGSHADER "../shaders/frag.spv"
+#endif
+
 void vkEngine::startContext() {
   initWindow();
   // inputHandler();
@@ -553,8 +565,8 @@ void vkEngine::createDescriptorSetLayout() {
 }
 
 void vkEngine::createGraphicsPipeline() {
-  auto vertShaderCode = readFile("../shaders/vert.spv");
-  auto fragShaderCode = readFile("../shaders/frag.spv");
+  auto vertShaderCode = readFile(DEFAULT_VERTEXSHADER);
+  auto fragShaderCode = readFile(DEFAULT_FRAGSHADER);
 
   VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
   VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -1496,8 +1508,13 @@ void vkEngine::init_imgui() {
 
 void vkEngine::createTextureImage() {
   int texWidth, texHeight, texChannels;
-  stbi_uc *pixels = stbi_load("../textures/crate_t.jpg", &texWidth, &texHeight,
+  stbi_uc *pixels = stbi_load(TEXTURE, &texWidth, &texHeight,
                               &texChannels, STBI_rgb_alpha);
+  // if (!pixels) {
+  // stbi_uc *pixels = stbi_load("../../textures/crate_t.jpg", &texWidth, &texHeight,
+  //                             &texChannels, STBI_rgb_alpha);
+  // }
+
   VkDeviceSize imageSize = texWidth * texHeight * 4;
 
   if (!pixels) {
