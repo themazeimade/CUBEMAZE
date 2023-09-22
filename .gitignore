@@ -1,2 +1,6 @@
 build/
 .cache/
+shaders/frag.spv
+shaders/frag01.spv
+shaders/vert.spv
+shaders/vert01.spv
