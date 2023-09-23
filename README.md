@@ -19,7 +19,7 @@ If the project uses vulkan, make sure you have installed the SDK and set as an e
   //finally
   cmake --build --config Debug // or Release
   cd ../../../
-// Main exacutable
+// Main executable
   mkdir build
   cd build
   //either
