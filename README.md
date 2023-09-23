@@ -1,4 +1,5 @@
 ** IMPORTANT RUN THE COMPILE.BAT TO COMPILE SHADERS**
+GLSL required (bundled with Vulkan SDK)
 
 # CUBEMAZE
 Explorable 3d maze generator
