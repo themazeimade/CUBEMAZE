@@ -7,6 +7,7 @@ When executing the program, first you need to type the size of the maze on the c
 Only tested on windows but 100% sure it works on linux (Vulkan FTW)
 if you are crazy like me use the MinGW64 makefiles, otherwise make the visual studio build files.
 If the project uses vulkan, make sure you have installed the SDK and set as an enviroment variable in your OS system/session.
+Also the project needs the GLFW include files and binaries, you need to compile them. Down below are the instructions. Finally, run the compile.bat on the main directory to compile the shaders needed to run the project.
 <pre>
 // GLFW compilation
   cd dependencies/glfw
