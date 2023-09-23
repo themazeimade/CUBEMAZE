@@ -1,3 +1,5 @@
+** IMPORTANT RUN THE COMPILE.BAT TO COMPILE SHADERS**
+
 # CUBEMAZE
 Explorable 3d maze generator
 
