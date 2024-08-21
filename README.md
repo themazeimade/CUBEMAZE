@@ -2,6 +2,13 @@
 GLSL required (bundled with Vulkan SDK)
 
 # CUBEMAZE
+
+<div>
+
+<a href="https://www.youtube.com/watch?v=Y_IJ3yajdUU">
+ <img src="https://img.youtube.com/vi/Y_IJ3yajdUU/0.jpg" style="width:75%;">
+</a>
+
 Explorable 3d maze generator
 
 When executing the program, first you need to type the size of the maze on the console. Then, with escape key you can deactivate/or active the camera and use the ImGui stuff (ensure you click on the viewport in order the escape key to work) . There you can manually move the camera, see how gravity works, move the maze, and go to a freecamera mode where you can float
